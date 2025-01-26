@@ -1,0 +1,254 @@
+---
+title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2025"
+subtitle: "Assignment 2 - Ayoung Kim "
+author: "Ayoung Kim"
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+## Submission Instructions
+
+You should open the .rmd file corresponding to this assignment on RStudio. The file is available on our class repository on Github.   
+
+Once you have the file open on your local machine the first thing you will do is rename the file such that it includes your first and last name (e.g., "LuanaLima_TSA_A02_Sp24.Rmd"). Then change "Student Name" on line 4 with your name. 
+
+Then you will start working through the assignment by  **creating code and output** that answer each question. Be sure to use this assignment document. Your report should contain the answer to each question and any plots/tables you obtained (when applicable).
+
+When you have completed the assignment, **Knit** the text and code into a single PDF file. Submit this pdf using Sakai. 
+
+## R packages
+
+R packages needed for this assignment:"forecast","tseries", and "dplyr". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.\\
+
+```{r, include=FALSE}
+setwd("/Users/ayoungkim/TSA_Sp25")
+getwd()
+
+```
+
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60), tidy=TRUE) 
+#the tidy arguments prevent the code from running off the page i.e. wrap by itself
+```
+
+
+```{r}
+#Load/install required package here
+install.packages("forecast")
+install.packages("tseries")
+install.packages("dplyr")
+
+#Addtional Package (For Plot)
+install.packages("ggplot2")
+
+library(forecast)
+library(tseries)
+library(dplyr)
+library(ggplot2)
+```
+
+## Data set information  
+
+Consider the data provided in the spreadsheet "Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx" on our **Data** folder. The data comes from the US Energy Information and Administration and corresponds to the December 2023 Monthly Energy Review. The spreadsheet is ready to be used. You will also find a $.csv$ version of the data "Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source-Edit.csv". You may use the function $read.table()$ to import the $.csv$ data in R. Or refer to the file "M2_ImportingData_CSV_XLSX.Rmd" in our Lessons folder for functions that are better suited for importing the $.xlsx$.
+
+```{r package, message=FALSE}
+#Loading packages 
+install.packages("readxl")
+install.packages("openxlsx")
+
+library(readxl)
+library(openxlsx)
+```
+
+```{r}
+
+#Setting a working directory again 
+setwd("/Users/ayoungkim/TSA_Sp25")
+
+renewable_data2 <- read.xlsx(xlsxFile="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", startRow = 13, colNames = FALSE)
+
+read_col_names2  <- read.xlsx(xlsxFile="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", rows = 11, colNames = FALSE)
+
+#Assign the column names to the data set
+colnames(renewable_data2) <- read_col_names2
+
+#Visualize the first rows of the data set
+head(renewable_data2)
+
+```
+
+
+## Question 1
+You will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only. Use the command head() to verify your data.
+
+```{r}
+#Using select function, selected only Total Biomass Energy Production, Total Renewable Energy Production, and Hydroelectric Powr Consumption. 
+renewable_data2_filtered <- select(renewable_data2, 
+                                   `Total Biomass Energy Production`, 
+                                   `Total Renewable Energy Production`, 
+                                   `Hydroelectric Power Consumption`)
+
+df_renewable_data2_filtered<-as.data.frame(renewable_data2_filtered)
+
+head(df_renewable_data2_filtered)
+```
+
+
+## Question 2
+Transform your data frame in a time series object and specify the starting point and frequency of the time series using the function ts().
+
+```{r}
+#Transform into a time series object + Starting point and frequency 
+
+#1 Time Series of Total Biomass Energy Production 
+ts1_renewable_data2_filtered <- ts(df_renewable_data2_filtered$`Total Biomass Energy Production`,start = c(1,1),frequency = 12)
+
+ts1_renewable_data2_filtered
+
+#2 Time series of Total Renewable Energy Production 
+ts2_renewable_data2_filtered<-ts(df_renewable_data2_filtered$`Total Renewable Energy Production`, start = c(1,1), frequency=12)
+
+ts2_renewable_data2_filtered
+
+#3 Time series of Hydroelectricc Power Consumption  
+ts3_renewable_data2_filtered <-ts(df_renewable_data2_filtered$`Hydroelectric Power Consumption`,start = c(1,1), frequency = 12)
+
+ts3_renewable_data2_filtered
+
+```
+
+
+## Question 3
+Compute mean and standard deviation for these three series.
+
+```{r}
+#1 Mean and standard deviation of Time Series of Total Biomass Energy Production 
+mean(ts1_renewable_data2_filtered)
+sd(ts1_renewable_data2_filtered)
+
+#2 Mean and standard deviation of Time Series of Total Renewable Enerfy Production 
+mean(ts2_renewable_data2_filtered)
+sd(ts2_renewable_data2_filtered)
+
+#3 Mean and standard deviation of Time Series of Hydroelectric Power Consumption 
+mean(ts3_renewable_data2_filtered)
+sd(ts3_renewable_data2_filtered)
+
+```
+
+
+## Question 4
+Display and interpret the time series plot for each of these variables. Try to make your plot as informative as possible by writing titles, labels, etc. For each plot add a horizontal line at the mean of each series in a different color.
+
+##Look at the plot - Which one has low inflow or high inflow. Increasing or decreasing? Stable? Which one has the biggest reservior? 
+
+Plot 1, which represents the time series of total biomass energy production, shows the increasing trend. The mean is around 282 with the standard deviation of 94.1. It has high inflow because the time series gradually increase. 
+
+Plot 2 displaying time series of total renewable energy produciton shows the increasing trend as well. The mean is around 402 with the standard deviation of 143.9. It has high inflow because the time series gradually increase. 
+
+In the Plot 3 representing the time series of hydroelectric power consumption, I could find the seasonal pattern. The mean is around 79 and it has lower standard deviation with 14.11 than other 2 time series, which are 94.1 and 143. 9 each. IT has low inflow because the time series fluctuate with certain pattern. 
+
+Checked my code using AI. 
+
+#Q. High vs. Low inflow? 
+
+```{r}
+## Titles, labels, horizontal line at the mean 
+## Plot, interpretation 
+
+#Plot 1 - Time series of total biomass energy production 
+autoplot(ts1_renewable_data2_filtered) +
+  labs(title = "Time Series of Total Biomass Energy Production",  
+       y = "Total Biomass Energy Production",  
+       x = "Time") + 
+  geom_hline(yintercept = mean(ts1_renewable_data2_filtered, na.rm = TRUE), 
+             color = "blue", linetype = "solid", size = 1) 
+
+#Plot 2 - Time Series of Total Renewable Energy Production
+autoplot(ts2_renewable_data2_filtered) +
+  labs(title = "Time Series of Total Renewable Energy Production",  
+       y = "Total Renewable Energy Production",  
+       x = "Time") + 
+  geom_hline(yintercept = mean(ts2_renewable_data2_filtered, na.rm = TRUE), 
+             color = "red", linetype = "solid", size = 1) 
+
+#Plot 3 - Time Series of Hydroelectric Power Consumption 
+autoplot(ts3_renewable_data2_filtered) +
+  labs(title = "Time Series of Hydroelectric Power Consumption",  
+       y = "Hydroelectric Power Consumption",  
+       x = "Time") + 
+  geom_hline(yintercept = mean(ts3_renewable_data2_filtered, na.rm = TRUE), 
+             color = "purple", linetype = "solid", size = 1) 
+
+```
+
+
+## Question 5
+Compute the correlation between these three series. Are they significantly correlated? Explain your answer.
+
+ts1 - Total Biomass Energy Production
+ts2 - Total Renewable Energy Production 
+ts3 - Hydroelectric Power Consumption 
+
+Answer: ts1 and ts2 are significantly correlated seeing that the result of correlation computation is 0.9678. However, ts2 & ts3 and ts 1 &3 are not correlated significantly wit the result of -0.02916103 and -0.1142927 each. 
+
+
+```{r}
+#Making as one df to find the correlation between three timeseries in matrix 
+df_ts_correlation <-data.frame(ts1_renewable_data2_filtered,ts2_renewable_data2_filtered,ts3_renewable_data2_filtered)
+
+correlation_ts<-cor(df_ts_correlation)
+correlation_ts
+
+#OR 
+
+#1 ts1+ts2 
+cor(ts1_renewable_data2_filtered,ts2_renewable_data2_filtered)
+
+#2 ts2+ts3
+cor(ts2_renewable_data2_filtered,ts3_renewable_data2_filtered)
+
+# ts1+ts3
+cor(ts1_renewable_data2_filtered,ts3_renewable_data2_filtered)
+
+```
+
+
+## Question 6
+Compute the autocorrelation function from lag 1 up to lag 40 for these three variables. What can you say about these plots? Do the three of them have the same behavior?
+
+Answer: The autocorrelation of ts1 and ts2 shows a similar behavior with a downward trend. The ACF values decrease as the lag increases in both cases. However, the autocorrelation of ts3 (Hydroelectric Power Consumption) exhibits a different behavior. It shows a seasonal pattern with regular fluctuations, rising and falling as the lag increases. 
+
+
+##Each of the bar represents of the p
+```{r}
+#1 Autocorrelation of ts1 
+acf_ts1 <-acf(ts1_renewable_data2_filtered,lag.max = 40,main="Autocorrelation of Total Biomass Energy Production")
+
+#2 Autocorrelation of ts2 
+acf_ts2<-acf(ts2_renewable_data2_filtered,lag.max = 40, main="Autocorrelation of Total Renewble Energy Production")
+
+#3 Autocorrelation of ts3 
+acf_ts3<-acf(ts3_renewable_data2_filtered,lag.max = 40, main="Autrocorrelation of Hydroelectric Power Consumption")
+
+```
+
+
+## Question 7
+Compute the partial autocorrelation function from lag 1 to lag 40 for these three variables. How these plots differ from the ones in Q6?
+
+Answer: In Q6, the autocorrelation (ACF) values for ts1 and ts2 were all positive, but in the partial autocorrelation (PACF) plots, the values turned out to be negative. The PACF plots in Q7 show the direct correlations, excluding the influence of previous lags. The PACF plot for Hydroelectric Power Consumption in Q7 has a similar pattern to the one in Q6, but the distribution is less fluctuating compared to Q6.
+
+```{r}
+#1 Partial Autocorrelation of ts1 
+pacf_ts1 <-pacf(ts1_renewable_data2_filtered,lag.max = 40,main="Partial Autocorrelation of Total Biomass Energy Production")
+
+#2 Partial Autocorrelation of ts2 
+pacf_ts2<-pacf(ts2_renewable_data2_filtered,lag.max = 40, main="Partial Autocorrelation of Total Renewble Energy Production")
+
+#3 Partial Autocorrelation of ts3 
+pacf_ts3<-pacf(ts3_renewable_data2_filtered,lag.max = 40, main="Partial Autocorrelation of Hydroelectric Power Consumption")
+```
+

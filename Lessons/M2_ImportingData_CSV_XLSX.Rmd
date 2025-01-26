@@ -10,6 +10,8 @@ editor_options:
 
 First R code chunk is used for setting the options for all R code chunks. The choice `echo = TRUE` means both code and output will appear on report, `include = FALSE` neither code nor output is printed.
 
+**Because of the blank rows without values + Description 
+
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60), tidy=TRUE) 
 #the tidy arguments prevent the code from running off the page i.e. wrap by itself
@@ -31,7 +33,7 @@ library(openxlsx)
 
 ```{r}
 #Importing data set without change the original file using read.xlsx
-energy_data1 <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 12, sheet="Monthly Data",col_names=FALSE) 
+energy_data1 <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 12, sheet="Monthly Data",col_names=FALSE) ##Starting with the value
 
 #Now let's extract the column names from row 11
 read_col_names <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
@@ -46,6 +48,8 @@ head(energy_data1)
 
 ## Importing data with read.xlsx()
 
+Local Container
+
 ```{r}
 energy_data2 <- read.xlsx(xlsxFile="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", startRow = 13, colNames = FALSE)
 
@@ -56,6 +60,8 @@ colnames(energy_data2) <- read_col_names2
 
 #Visualize the first rows of the data set
 head(energy_data2)
+
+getwd()
 
 ```
 

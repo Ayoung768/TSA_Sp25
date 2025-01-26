@@ -22,6 +22,7 @@ It's useful to designate one code chunk to load packages on the beginning of the
 ```{r package, include=FALSE}
 library(lubridate)
 library(ggplot2)
+install.packages("forecast")
 library(forecast) #added for Acf and Pacf functions
 
 ```
@@ -143,6 +144,8 @@ HP1_pacf=pacf(ts_inflow_data[,1],lag=60)
 HP1_acf=Acf(ts_inflow_data[,1],lag=60)
 
 HP1_pacf=Pacf(ts_inflow_data[,1],lag=60)
-  
+
+##Blue line - ????
+
 ```
 
