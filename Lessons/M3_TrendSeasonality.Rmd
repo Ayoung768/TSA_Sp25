@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE)
 Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output. 
 
 ```{r package, message=FALSE}
-library(lubridate)
+library(lubridate) #Always install for ts models 
 library(ggplot2)
 library(forecast)
 library(Kendall)
@@ -92,6 +92,9 @@ tail(inflow_data)
 
 Note our last observation is from August 2011 but the data file was filled with zeros. Let's remove the last four rows of our data set.
 
+Have to remove 0 ! 
+
+
 ```{r}
 #Remove last year by replacing current data frame
 inflow_data <- inflow_data[1:(nobs-12),]
@@ -137,10 +140,24 @@ Let's identify and remove trend component. You start by fitting a linear model t
 
 ```{r}
 #Create vector t
+t<-c(1:nobs)
 
-
+#Combine t and original ino one data frame 
 
 #Fit a linear trend to TS of iHP
+linear_trend_model = lm(inflow_data[,iHP+1]-t)
+summary(linear_trend_model)
+
+beta0=as.numeric(linear_trend_model$coefficients[1])
+beta1=as.numeric(linear_trend_model$coefficients[2])
+
+#Detrend inflow 
+linear_trend<-beta0+beta1*t 
+detrend_inflow<-inflow_data[,iHP+1]
+ts_detrend<-ts(dtrend_inflow,start=c(1931,1))
+
+
+
 
 
 ```

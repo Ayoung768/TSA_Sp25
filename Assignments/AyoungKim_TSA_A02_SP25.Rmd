@@ -36,12 +36,13 @@ knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60), tidy=TRUE)
 
 ```{r}
 #Load/install required package here
-install.packages("forecast")
-install.packages("tseries")
-install.packages("dplyr")
+#install.packages("forecast")
+#install.packages("tseries")
+#install.packages("dplyr")
 
 #Addtional Package (For Plot)
-install.packages("ggplot2")
+#install.packages("ggplot2")
+#install.packages("formatR")
 
 library(forecast)
 library(tseries)
@@ -55,8 +56,8 @@ Consider the data provided in the spreadsheet "Table_10.1_Renewable_Energy_Produ
 
 ```{r package, message=FALSE}
 #Loading packages 
-install.packages("readxl")
-install.packages("openxlsx")
+#install.packages("readxl")
+#install.packages("openxlsx")
 
 library(readxl)
 library(openxlsx)
@@ -84,11 +85,8 @@ head(renewable_data2)
 You will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only. Use the command head() to verify your data.
 
 ```{r}
-#Using select function, selected only Total Biomass Energy Production, Total Renewable Energy Production, and Hydroelectric Powr Consumption. 
-renewable_data2_filtered <- select(renewable_data2, 
-                                   `Total Biomass Energy Production`, 
-                                   `Total Renewable Energy Production`, 
-                                   `Hydroelectric Power Consumption`)
+#Using "select" function, selected only Total Biomass Energy Production, Total Renewable Energy Production, and Hydroelectric Powr Consumption. 
+renewable_data2_filtered <- select(renewable_data2,`Total Biomass Energy Production`,`Total Renewable Energy Production`,`Hydroelectric Power Consumption`)
 
 df_renewable_data2_filtered<-as.data.frame(renewable_data2_filtered)
 
@@ -101,7 +99,6 @@ Transform your data frame in a time series object and specify the starting point
 
 ```{r}
 #Transform into a time series object + Starting point and frequency 
-
 #1 Time Series of Total Biomass Energy Production 
 ts1_renewable_data2_filtered <- ts(df_renewable_data2_filtered$`Total Biomass Energy Production`,start = c(1,1),frequency = 12)
 
@@ -142,8 +139,6 @@ sd(ts3_renewable_data2_filtered)
 ## Question 4
 Display and interpret the time series plot for each of these variables. Try to make your plot as informative as possible by writing titles, labels, etc. For each plot add a horizontal line at the mean of each series in a different color.
 
-##Look at the plot - Which one has low inflow or high inflow. Increasing or decreasing? Stable? Which one has the biggest reservior? 
-
 Plot 1, which represents the time series of total biomass energy production, shows the increasing trend. The mean is around 282 with the standard deviation of 94.1. It has high inflow because the time series gradually increase. 
 
 Plot 2 displaying time series of total renewable energy produciton shows the increasing trend as well. The mean is around 402 with the standard deviation of 143.9. It has high inflow because the time series gradually increase. 
@@ -152,7 +147,6 @@ In the Plot 3 representing the time series of hydroelectric power consumption, I
 
 Checked my code using AI. 
 
-#Q. High vs. Low inflow? 
 
 ```{r}
 ## Titles, labels, horizontal line at the mean 
