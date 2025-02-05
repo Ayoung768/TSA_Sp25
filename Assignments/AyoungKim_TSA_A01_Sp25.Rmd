@@ -1,6 +1,6 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
-subtitle: "Assignment 1 - Due date 01/16/25"
+subtitle: "Assignment 1 - Ayoung Kim"
 author: "Ayoung Kim"
 output: pdf_document
 geometry: margin=2.54cm
@@ -24,12 +24,18 @@ Q1. What are your previous experiences with time series analysis, R, and Git?
 
 Q2. (Only if you choose to use git) Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository and that you have updated your course README file as instructed on the recorded video "Getting started with Git and Github". 
 
-> Answer: 
+> Answer: https://github.com/Ayoung768/TSA_Sp25.git
 
 
 Q3. For this part we just want to see the path to your R project. No need to do anything. The output will be automatically generated once you knit you file. 
 
 > Answer: This is my working directory:
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60), tidy=TRUE) 
+#the tidy arguments prevent the code from running off the page i.e. wrap by itself
+
+```
 
 ```{r}
 getwd()

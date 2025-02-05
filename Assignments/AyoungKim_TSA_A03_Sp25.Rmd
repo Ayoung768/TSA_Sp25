@@ -1,10 +1,13 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2025"
-subtitle: "Assignment 3 - Ayoung Kim"
 author: "Ayoung Kim"
-output: pdf_document
+subtitle: "Assignment 3 - Ayoung Kim"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 geometry: margin=2.54cm
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 ```{r}
@@ -44,11 +47,10 @@ R packages needed for this assignment:"forecast","tseries", and "Kendall". Insta
 #install.packages("cowplot")
 #install.packages("ggplot2")
 
+
 library(forecast)
 library(tseries)
 library(Kendall)
-library(openxlsx)
-library(readxl)
 library(dplyr)
 library(cowplot)
 library(ggplot2)
@@ -56,12 +58,13 @@ library(ggplot2)
 
 
 ```{r}
-#Checking working directory 
-getwd()
 
-renewable_data2 <- read.xlsx(xlsxFile="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", startRow = 13, colNames = FALSE)
+library(openxlsx)
+library(readxl)
 
-read_col_names2  <- read.xlsx(xlsxFile="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", rows = 11, colNames = FALSE)
+renewable_data2 <- read.xlsx(xlsxFile="./Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", startRow = 13, colNames = FALSE)
+
+read_col_names2  <- read.xlsx(xlsxFile="./Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",sheet = "Monthly Data", rows = 11, colNames = FALSE)
 
 #Assign the column names to the data set
 colnames(renewable_data2) <- read_col_names2
@@ -103,13 +106,19 @@ ts_plot1<-autoplot(ts1_renewable_data2_filtered) +
 ts_plot1
 
 #Renewable Energy Production Plot2 - ACF
-acf_ts1<-acf(ts1_renewable_data2_filtered, main="Autocorrelation of Total Renewble Energy Production",type="correlation",plot=TRUE)
-acf_ts1_1 <- ggAcf(ts1_renewable_data2_filtered) + ggtitle("Autocorrelation of Total Renewable Energy Production")
+acf_ts1<-acf(ts1_renewable_data2_filtered, 
+             main="Autocorrelation of Total Renewble Energy Production",
+             type="correlation",plot=TRUE)
+acf_ts1_1 <- ggAcf(ts1_renewable_data2_filtered) +
+  ggtitle("Autocorrelation of Total Renewable Energy Production")
 
 
 #Renewable Energy Production Plot3 - PACF 
-pacf_ts1<-pacf(ts1_renewable_data2_filtered, main="Partial Autocorrelation of Total Renewble Energy Production", plot=TRUE)
-pacf_ts1_1 <- ggPacf(ts1_renewable_data2_filtered) + ggtitle("Partial Autocorrelation of Total Renewable Energy Production")
+pacf_ts1<-pacf(ts1_renewable_data2_filtered, 
+               main="Partial Autocorrelation of Total Renewble Energy Production", 
+               plot=TRUE)
+pacf_ts1_1 <- ggPacf(ts1_renewable_data2_filtered) +
+  ggtitle("Partial Autocorrelation of Total Renewable Energy Production")
 
 #Hydroelectric Consumption Plot 1- Time Series 
 ts_plot2<-autoplot(ts2_renewable_data2_filtered) +
@@ -118,12 +127,18 @@ ts_plot2<-autoplot(ts2_renewable_data2_filtered) +
        x = "Time")
 
 #Hydroelectric Consumption Plot 2- ACF 
-acf_ts2<-acf(ts2_renewable_data2_filtered, main="Autrocorrelation of Hydroelectric Power Consumption",plot=TRUE)
-acf_ts2_1<- ggAcf(ts2_renewable_data2_filtered) + ggtitle("Autocorrelation of Hydroelectric Power Consumption")
+acf_ts2<-acf(ts2_renewable_data2_filtered, 
+             main="Autrocorrelation of Hydroelectric Power Consumption",
+             plot=TRUE)
+acf_ts2_1<- ggAcf(ts2_renewable_data2_filtered) + 
+  ggtitle("Autocorrelation of Hydroelectric Power Consumption")
 
 #Hydroelectric Consumption Plot 3- PACF 
-pacf_ts2<-pacf(ts2_renewable_data2_filtered, main="Partial Autocorrelation of Total Renewble Energy Production",plot=TRUE)
-pacf_ts2_1 <- ggPacf(ts2_renewable_data2_filtered) + ggtitle("Partial Autocorrelation of Hydroelectric Power Consumption")
+pacf_ts2<-pacf(ts2_renewable_data2_filtered, 
+               main="Partial Autocorrelation of Total Renewble Energy Production",
+               plot=TRUE)
+pacf_ts2_1 <- ggPacf(ts2_renewable_data2_filtered) + 
+  ggtitle("Partial Autocorrelation of Hydroelectric Power Consumption")
 
 #Grid version of plots 
 plot_grid(ts_plot1,ts_plot2,acf_ts1_1,acf_ts2_1,pacf_ts1_1,pacf_ts2_1,ncol = 2, nrow = 3)
@@ -307,8 +322,8 @@ Use the regression coefficients from Q7 to deseason the series. Plot the deseaso
 #Answer: 
 Compared to the plots from Q1, the Hydroelectric Power Consumption plot is pretty similar to the one in Q1. However, the plot for Total Renewable Energy Consumption has a different trend compared to Q1, as it shows the downward trend at first but it is changed to upward (increasing) trend after t=30. 
 
-#Checked my code with AI 
-```{r}
+#Checked my code with AI because I was in trouble with knitting the document. 
+```{r,warning=FALSE}
 nobs_1 <- length(detrend_renewable_ts1)
 nobs_2 <- length(detrend_renewable_ts2)
 
@@ -322,7 +337,7 @@ beta_coeff_2<-ts2_seasonal_means_model$coefficients[2:13]
 renewable_seasonal_comp_1<-array(0,nobs_1)
 
 for (i in 1:nobs_1) {
-  renewable_seasonal_comp[i] <- beta_intercept_1 + sum(beta_coeff_1 * dummies_1[i,])
+  renewable_seasonal_comp_1[i] <- beta_intercept_1 + beta_coeff_1 * dummies_1[i,]
 }
 
 deseason_renewable_ts_data_1<-detrend_renewable_ts1 - renewable_seasonal_comp_1
@@ -333,7 +348,7 @@ ts_deseason_renewable_ts_data_1 <-ts(deseason_renewable_ts_data_1,start = c(1,1)
 renewable_seasonal_comp_2<-array(0,nobs_2)
 
 for (i in 1:nobs_2) {
-  renewable_seasonal_comp[i] <- beta_intercept_2 + sum(beta_coeff_2 * dummies_2[i,])
+  renewable_seasonal_comp_2[i] <- beta_intercept_2 + beta_coeff_2 * dummies_2[i,]
 }
 
 deseason_renewable_ts_data_2<-detrend_renewable_ts2 - renewable_seasonal_comp_2
@@ -363,22 +378,37 @@ Plot ACF and PACF for the deseason series and compare with the plots from Q1. Yo
 #Answer: 
 Although there is no big difference in the Hydroelectric Power Consumption plots, the Total Renewable Energy one has slight changes in acf and pacf. Though the acf plot in Q1 shows the contant decrease, the acf of deceasoned plot has the downward trend in overall with some exceptions. Also, unlike the time series of Q1 has contant downward trend,  deasoned Total Renewable Energy Production has down and upward trend. 
 
+
 ```{r}
 #Deseason series - Total Renewable Energy Production: acf 
-acf_ts1_deseason<-acf(ts_deseason_renewable_ts_data_1, main="Autocorrelation of the Deseasoned Total Renewble Energy Production Series",type="correlation",plot=TRUE)
-acf_ts1_deseason_plot<- ggAcf(ts_deseason_renewable_ts_data_1) + ggtitle("Autocorrelation of the Deseasoned Total Renewable Energy Production")
+acf_ts1_deseason<-acf(ts_deseason_renewable_ts_data_1, 
+                      main="Autocorrelation of the Deseasoned Total Renewble Energy Production Series",
+                      type="correlation",
+                      plot=TRUE)
+acf_ts1_deseason_plot<- ggAcf(ts_deseason_renewable_ts_data_1) + 
+  ggtitle("Autocorrelation of the Deseasoned Total Renewable Energy Production")
 
 #Detrended series - Total Renewable Energy Production: pacf
-pacf_ts1_deseason<-pacf(ts_deseason_renewable_ts_data_1, main="Partial Autocorrelation of the Deseasoned Total Renewble Energy Production Series",type="correlation",plot=TRUE)
-pacf_ts1_deseason_plot<- ggPacf(ts_deseason_renewable_ts_data_1) + ggtitle("Partial Autocorrelation of the Deseasoned Total Renewable Energy Production")
+pacf_ts1_deseason<-pacf(ts_deseason_renewable_ts_data_1, 
+                        main="Partial Autocorrelation of the Deseasoned Total Renewble Energy Production Series",
+                        type="correlation",
+                        plot=TRUE)
+pacf_ts1_deseason_plot<- ggPacf(ts_deseason_renewable_ts_data_1) + 
+  ggtitle("Partial Autocorrelation of the Deseasoned Total Renewable Energy Production")
 
 #Detrended Series - Hydroelectric Power Consumption : acf 
-acf_ts2_deseason<-acf(ts_deseason_renewable_ts_data_2, main="Autocorrelation of the Deseasoned Hydroelectric Power Consumption Series",type="correlation",plot=TRUE)
-acf_ts2_deseason_plot<- ggAcf(ts_deseason_renewable_ts_data_2) + ggtitle("Autocorrelation of the Deseasoned Hydroelectric Power Consumption")
+acf_ts2_deseason<-acf(ts_deseason_renewable_ts_data_2, 
+                      main="Autocorrelation of the Deseasoned Hydroelectric Power Consumption Series",
+                      type="correlation",plot=TRUE)
+acf_ts2_deseason_plot<- ggAcf(ts_deseason_renewable_ts_data_2) + 
+  ggtitle("Autocorrelation of the Deseasoned Hydroelectric Power Consumption")
 
 #Detrended series - Hydroelectric Power Consumption: pacf
-pacf_ts2_deseason<-pacf(ts_deseason_renewable_ts_data_2, main="Partial Autocorrelation of the Deseasoned Hydroelectric Power Consumption",type="correlation",plot=TRUE)
-pacf_ts2_deseason_plot<- ggPacf(ts_deseason_renewable_ts_data_2) + ggtitle("Partial Autocorrelation of the Deseasoned Hydroelectric Power Consumption")
+pacf_ts2_deseason<-pacf(ts_deseason_renewable_ts_data_2, 
+                        main="Partial Autocorrelation of the Deseasoned Hydroelectric Power Consumption",
+                      type="correlation",plot=TRUE)
+pacf_ts2_deseason_plot<- ggPacf(ts_deseason_renewable_ts_data_2) + 
+  ggtitle("Partial Autocorrelation of the Deseasoned Hydroelectric Power Consumption")
 
 plot_grid(plot_deseason_seasonal_model_renewable_1,plot_deseason_seasonal_model_renewable_2, acf_ts1_deseason_plot, acf_ts2_deseason_plot, pacf_ts1_deseason_plot, pacf_ts2_deseason_plot, nrow = 3, ncol=2)
 ```
