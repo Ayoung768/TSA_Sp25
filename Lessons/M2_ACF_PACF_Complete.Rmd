@@ -192,5 +192,7 @@ HP1_pacf=pacf(ts_inflow_data[,1],lag.max=60, plot=TRUE)
 HP1_acf=Acf(ts_inflow_data[,1],lag.max=60, type="correlation", plot=TRUE)
 
 HP1_pacf=Pacf(ts_inflow_data[,1],lag.max=60, plot=TRUE)
+
+plot_grid(HP1_acf,HP1_pacf, ncol=2,nrow = 1)
 ```
 

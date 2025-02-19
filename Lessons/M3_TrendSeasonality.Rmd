@@ -242,3 +242,8 @@ print("Results for ADF test on yearly data/n")
 
 Run the stationarity tests for the other variables HP2, HP3, ...
 
+
+
+
+Q1. 
+

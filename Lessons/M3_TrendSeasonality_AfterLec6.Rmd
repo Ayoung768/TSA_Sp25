@@ -169,10 +169,28 @@ Now let's shift attention to the seasonal component.
 
 ```{r}
 #Use seasonal means model
+
+iHP<-1
 dummies <- seasonaldummy(ts_detrend)
 
 seas_means_model <- lm(detrend_inflow ~ dummies)
 summary(seas_means_model)
+
+beta_intercept <-seas_means_model$coefficients[1]
+beta_coeff<-seas_means_model$coefficients[2:12]
+
+inflow_seas_comp<-array(0,nobs)
+for(i in 1:nobs){
+  inflow_seas_comp[i]<-beta_intercept+beta_coeff %*% dummies[i,]
+}
+
+deseason_inflow_data<-detrend_inflow-inflow_seas_comp
+
+ts_deseason_inflow_data <-ts(deseason_inflow_data,start = c(1931,1), frequency=12)
+
+autoplot(ts_deseason_inflow_data[,iHP]) +
+  autolayer(ts_deseason_inflow_data,series = "Detrend and deseasoned Inflow")
+
 
 
 ```
@@ -188,6 +206,9 @@ Some test only work for non-seasonal data. So let's create another series with y
 
 ```{r}
 #Group data in yearly steps instances
+iHP<-1
+
+#Group data in yearly steps instances 
 
 
 ```

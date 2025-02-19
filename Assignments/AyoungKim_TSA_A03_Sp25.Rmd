@@ -77,7 +77,7 @@ df_renewable_data2_filtered<-as.data.frame(renewable_data2_filtered)
 head(df_renewable_data2_filtered)
 
 #1 Time series of Total Renewable Energy Production 
-ts1_renewable_data2_filtered<-ts(df_renewable_data2_filtered$`Total Renewable Energy Production`, start = c(1,1), frequency=12)
+ts1_renewable_data2_filtered<-ts(df_renewable_data2_filtered$`Total Renewable Energy Production`, start = c(1,1), frequency=12, lag=40)
 
 ts1_renewable_data2_filtered
 

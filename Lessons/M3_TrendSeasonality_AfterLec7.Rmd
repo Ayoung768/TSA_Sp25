@@ -10,6 +10,7 @@ First R code chunk is used for setting the options for all R code chunks. The ch
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE) 
+
 ```
 
 ## Loading packages and initializing
@@ -23,6 +24,9 @@ library(forecast)
 library(Kendall)
 library(tseries)
 
+setwd("/Users/ayoungkim/TSA_Sp25/Data")
+getwd()
+
 ```
 
 ## Importing data
@@ -31,8 +35,9 @@ Let's continue working with our inflow data for reservoirs in Brazil.
 
 ```{r}
 
+setwd("/Users/ayoungkim/TSA_Sp25/Data")
 #Importing time series data from text file#
-raw_inflow_data <- read.table(file="./Data/inflowtimeseries.txt",header=FALSE,skip=0)
+raw_inflow_data <- read.table(file="./",header=FALSE,skip=0)
 
 #Trim the table to include only columns you need
 nhydro <- ncol(raw_inflow_data)-2
