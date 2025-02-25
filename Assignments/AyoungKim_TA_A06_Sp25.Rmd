@@ -1,7 +1,7 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 6 - Due date 02/27/25"
-author: "Student Name"
+author: "Ayoung Kim"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -18,8 +18,17 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 R packages needed for this assignment: "ggplot2", "forecast", "tseries" and "sarima". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.
 
-```{r}
+```{r, Warning=FALSE}
 #Load/install required package here
+install.packages("ggplot2")
+install.packages("forecast")
+install.packages("tseries")
+install.packages("sarima")
+
+library(ggplot2)
+library(forecast)
+library(tseries)
+library(sarima)
 
 
 ```
@@ -32,11 +41,12 @@ Describe the important characteristics of the sample autocorrelation function (A
 
 * AR(2)
 
-> Answer:
+> Answer: In the AR model, ACF will decay exponentially with time, which means that there is a relationship with a previous lag. PACF will identify the order of the AR model. The PACF will cut off at the order of the AR model, which is 2 in AR(2). 
+
 
 * MA(1)
 
-> Answer:
+> Answer: Different from AR, in MA models, ACF will identify the order of the MA model and the PACF will decay exponentially. In MA(1), ACF will show the cut off at 1 without other significant lags after that.  
 
 ## Q2
 
@@ -44,7 +54,30 @@ Recall that the non-seasonal ARIMA is described by three parameters ARIMA$(p,d,q
 
 (a) Consider three models: ARMA(1,0), ARMA(0,1) and ARMA(1,1) with parameters $\phi=0.6$ and $\theta= 0.9$. The $\phi$ refers to the AR coefficient and the $\theta$ refers to the MA coefficient. Use the `arima.sim()` function in R to generate $n=100$ observations from each of these three models. Then, using `autoplot()` plot the generated series in three separate graphs.
 
+Q1. Using random seed? 
+Q2. Making it to TS and then autoplot? 
+
 ```{r}
+#Is it using random seed?
+set.seed(123)
+
+arma10<-arima.sim(n=100, model=list(ar=0.6))
+arma01<-arima.sim(n=100, model=list(ma=0.9))
+arma11<-arima.sim(n=100, model = list(ar=0.6, ma=0.9))
+
+#Plotting generated series in three seperate graphs 
+
+#1 ARIMA (1,0)
+plot_arma10<-autoplot(arma10)
+plot_arma10
+
+#2 ARIMA (0,1)
+plot_arma01<-autoplot(arma01)
+plot_arma01
+
+#3 ARIMA (1,1)
+plot_arma11<-autoplot(arma11)
+plot_arma11
 
 ```
 
@@ -52,26 +85,72 @@ Recall that the non-seasonal ARIMA is described by three parameters ARIMA$(p,d,q
 
 
 ```{r}
+#Make ACF plots of each model 
+acf_plot_arma10<-autoplot(Acf(arma10,plot = FALSE)) + ggtitle("ACF of ARMA (1,0)")
+acf_plot_arma01<-autoplot(Acf(arma01,plot = FALSE)) + ggtitle("ACF of ARMA (0,1)")
+acf_plot_arma11<-autoplot(Acf(arma11,plot = FALSE)) + ggtitle("ACF of ARMA (1,1)")
+
+#In one window 
+cowplot::plot_grid(acf_plot_arma10,acf_plot_arma01,acf_plot_arma11)
+
 
 ```
 
 (c) Plot the sample PACF for each of these models in one window to facilitate comparison.
 
 ```{r}
+#Make PACF plots of each model 
+pacf_plot_arma10<-autoplot(Pacf(arma10,plot = FALSE)) + ggtitle("PACF of ARMA (1,0)")
+pacf_plot_arma01<-autoplot(Pacf(arma01,plot = FALSE)) + ggtitle("PACF of ARMA (0,1)")
+pacf_plot_arma11<-autoplot(Pacf(arma11,plot = FALSE)) + ggtitle("PACF of ARMA (1,1)")
+
+#In one window 
+cowplot::plot_grid(pacf_plot_arma10,pacf_plot_arma01,pacf_plot_arma11)
 
 ```
 
 (d) Look at the ACFs and PACFs. Imagine you had these plots for a data set and you were asked to identify the model, i.e., is it AR, MA or ARMA and the order of each component. Would you be able identify them correctly? Explain your answer.
 
-> Answer:
+> Answer: Yes, I can identify them with the cut off and whether it lags are decaying exponentially or not. 
 
 (e) Compare the PACF values R computed with the values you provided for the lag 1 correlation coefficient, i.e., does $\phi=0.6$ match what you see on PACF for ARMA(1,0), and ARMA(1,1)? Should they match?
 
-> Answer:
+> Answer:No, they were not matched. 
+Q. Should they match? 
 
 (f) Increase number of observations to $n=1000$ and repeat parts (b)-(e).
 
 ```{r}
+# (a)
+arma10_2<-arima.sim(n=1000, model=list(ar=0.6))
+arma01_2<-arima.sim(n=1000, model=list(ma=0.9))
+arma11_2<-arima.sim(n=1000, model = list(ar=0.6, ma=0.9))
+
+#(b)
+#Make ACF plots of each model (n=1000)
+acf_plot_arma10_2<-autoplot(Acf(arma10_2,plot = FALSE)) + ggtitle("ACF of ARMA (1,0), n=1000")
+acf_plot_arma01_2<-autoplot(Acf(arma01_2,plot = FALSE)) + ggtitle("ACF of ARMA (0,1), n=1000")
+acf_plot_arma11_2<-autoplot(Acf(arma11_2,plot = FALSE)) + ggtitle("ACF of ARMA (1,1), n=1000")
+
+#In one window 
+cowplot::plot_grid(acf_plot_arma10_2,acf_plot_arma01_2,acf_plot_arma11_2)
+
+#(c)
+#Make PACF plots of each model (n=1000)
+pacf_plot_arma10_2<-autoplot(Pacf(arma10_2,plot = FALSE)) + ggtitle("PACF of ARMA (1,0), n=1000")
+pacf_plot_arma01_2<-autoplot(Pacf(arma01_2,plot = FALSE)) + ggtitle("PACF of ARMA (0,1), n=1000")
+pacf_plot_arma11_2<-autoplot(Pacf(arma11_2,plot = FALSE)) + ggtitle("PACF of ARMA (1,1), n=1000")
+
+#In one window 
+cowplot::plot_grid(pacf_plot_arma10_2,pacf_plot_arma01_2,pacf_plot_arma11_2)
+
+#(d)Look at the ACFs and PACFs. Imagine you had these plots for a data set and you were asked to identify the model, i.e., is it AR, MA or ARMA and the order of each component. Would you be able identify them correctly? Explain your answer.
+
+#Answer: 
+
+#(e) Compare the PACF values R computed with the values you provided for the lag 1 correlation coefficient, i.e., does $\phi=0.6$ match what you see on PACF for ARMA(1,0), and ARMA(1,1)? Should they match?
+
+#Answer: For PACF, yes, the lag 1 correlation coefficient matched.
 
 ```
 
@@ -81,7 +160,22 @@ Consider the ARIMA model $y_t=0.7*y_{t-1}-0.25*y_{t-12}+a_t-0.1*a_{t-1}$
 
 (a) Identify the model using the notation ARIMA$(p,d,q)(P,D,Q)_ s$, i.e., identify the integers $p,d,q,P,D,Q,s$ (if possible) from the equation.
 
+p=1
+d= How can I identify differencing? 
+q=1
+P= #Question 
+D= How can I identify differencing? 
+Q= #Question 
+s (seasonal period)= 12
+
 (b) Also from the equation what are the values of the parameters, i.e., model coefficients.
+
+Answer: 
+Coefficient of AR = 0.7
+Coefficient of MA = -0.1
+Coefficient of AR at lag 12 = -0.25
+
+Q. Finding coefficients? 
 
 ## Q4
 

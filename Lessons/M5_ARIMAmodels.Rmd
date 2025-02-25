@@ -35,7 +35,6 @@ library(cowplot)
 For this module we will work with monthly average for electricity retail price in US. The data is from the U.S. Energy Information Administration and can be download [here][https://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M%2013:41:41%20GMT-0500%20(EST)]. 
 
 ```{r}
-
 #Importing time series data from text file#
 electricity_price <- read.csv(file="./Data/Average_retail_price_of_electricity_United_States_monthly.csv",header=TRUE,skip=4)
 
@@ -97,13 +96,20 @@ tail(ts_electricity_price,15)
 ```{r}
 
 #ACF and PACF plots
-
 plot_grid(
   autoplot(Acf(electricity_price_processed$Residential, lag = 40, plot=FALSE), 
                 main = "ACF Residential Electricity Price"),
   autoplot(Pacf(electricity_price_processed$Residential, lag = 40, plot=FALSE),  
                   main = "PACF Residential Electricity Price")
 )
+
+#ACF is decreasing - Carries memories from one observation to another 
+
+#PACF - One significant lag 
+
+#Therefore, it is AR1 
+
+
 
 ```
 
@@ -117,6 +123,8 @@ The plots from the previous section show the data has a seasonal component. Sinc
 decompose_residential_price <- decompose(ts_electricity_price[,"Residential"],"additive")
 plot(decompose_residential_price)
 
+# Trend: increasing over time 
+# Random : additive one is good representative, because the random component looks random! 
 
 ```
 
@@ -125,21 +133,21 @@ To take seasonality only out of the data set, we will use function seasadj() fro
 The ACF and PACF from the seasonal adjusted series will help you specify components **p** and **q** of the ARIMA(p,d,q).
 
 ```{r}
+#Removing seasonality 
 
 #Creating non-seasonal residential price time series
-deseasonal_residential_price <- 
-  
+deseasonal_residential_price <- seasadj(decompose_residential_price) #Already in time-series format 
 
-#Plotting original and deseasoned series
-autoplot()
-
+#Plotting original and deseasoned series 
+autoplot(ts_electricity_price[,"Residential"],series="Original")+
+  autolayer(deseasonal_residential_price,series = "Deseasoned")+xlab("Year") + ylab("Residential Electricity Price")
 
 
 #Comparing ACFs
 plot_grid(
-  autoplot(Acf(????, lag = 40, plot=FALSE), 
+  autoplot(Acf(ts_electricity_price [,"Residential"], lag = 40, plot=FALSE), 
                 main = "Orginal Residential Electricity Price"),
-  autoplot(Acf(????, lag = 40, plot=FALSE),  
+  autoplot(Acf(ts_electricity_price[,"Residential"], lag = 40, plot=FALSE),  
                   main = "Deseason Residential Electricity Price")
 )
 
@@ -147,11 +155,12 @@ plot_grid(
 
 #Comparing PACFs
 plot_grid(
-  autoplot(Pacf(????, lag = 40, plot=FALSE), 
+  autoplot(Pacf(ts_electricity_price [,"Residential"], lag = 40, plot=FALSE), 
                 main = "Orginal Residential Electricity Price"),
-  autoplot(Pacf(????, lag = 40, plot=FALSE),  
+  autoplot(Pacf(ts_electricity_price [,"Residential"], lag = 40, plot=FALSE),  
                   main = "Deseason Residential Electricity Price")
 )
+
 
 ```
 
@@ -163,34 +172,36 @@ Always check for stationarity before fitting ARIMA models. This will help specif
 
 ```{r}
 
-#Run ADF
+#ARIMA can only work with stationary model with stocastic trend 
 
+#Run ADF
+print(adf.test(deseasonal_residential_price,alternative = "stationary"))
 
 #Lets difference the series to remove the trend.
 #Difference the data at lag 1 and remove NA
-deseasonal_residential_price_diff <- 
+deseasonal_residential_price_diff <- diff(deseasonal_residential_price, lag=1)
 
 #Check autocorrelation plot again
 
 
 #Comparing ACFs
 plot_grid(
-  autoplot(Acf(????, lag = 40, plot=FALSE), 
+  autoplot(Acf(ts_electricity_price [,"Residential"], lag = 40, plot=FALSE), 
                 main = "Orginal Residential Electricity Price"),
-  autoplot(Acf(????, lag = 40, plot=FALSE),  
+  autoplot(Acf(deseasonal_residential_price, lag = 40, plot=FALSE),  
                   main = "Deseason Residential Electricity Price"),
-  autoplot(Acf(????, lag = 40, plot=FALSE),  
-                  main = "Diff/Deseason Residential Electricity Price")
+  autoplot(Acf(deseasonal_residential_price_diff, lag = 40, plot=FALSE),  
+                  main = "Diff/Deseason Residential Electricity Price"), nrow=1
 )
 
 #Comparing PACFs
 plot_grid(
-  autoplot(Pacf(????, lag = 40, plot=FALSE), 
+  autoplot(Pacf(ts_electricity_price [,"Residential"], lag = 40, plot=FALSE), 
                 main = "Orginal Residential Electricity Price"),
-  autoplot(Pacf(????, lag = 40, plot=FALSE),  
+  autoplot(Pacf(deseasonal_residential_price, lag = 40, plot=FALSE),  
                   main = "Deseason Residential Electricity Price"),
-  autoplot(Oacf(????, lag = 40, plot=FALSE),  
-                  main = "Diff/Deseason Residential Electricity Price")
+  autoplot(acf(deseasonal_residential_price_diff, lag = 40, plot=FALSE),  
+                  main = "Diff/Deseason Residential Electricity Price"), nrow=1
 )
 ```
 
@@ -205,22 +216,29 @@ Some important arguments for Arima() are:
 *include.mean*: the default is TRUE for undifferenced series, which means the model will include a mean term, and FALSE when d > 0
 *include.drift*: the default is FALSE, but changing to TRUE might lead to better fits. The drift will be necessary when the series mean is not zero even after differencing
 
+#include.drift = TRUE 
+More open to all posibilities when fitting a ARIMA model 
+
 ```{r}
 
 #Remember the order d=1 will perform the differencing, 
 #so lets try ARIMA(1,1,1) on the non-seasonal residential data before differencing
-Model_111 <- Arima()
+#That means make the ARIMA model to he differencing for me 
+Model_111 <- Arima(deseasonal_residential_price, order=c(1,1,1), include.drift = TRUE)
 print(Model_111)
+
+#y_t = 0.000 + 0.6312 *(t_t_1 = -0.7426 *a_t-1 + a_t)
 compare_aic <- data.frame(Model_111$aic)
 
 #Check residuals series, if white noise we got a good fit
 plot_grid(
   autoplot(Model_111$residuals),
-  autoplot(Acf(Model_111$residuals,lag.max=40, plot = FALSE),
-  Pacf(Model_111$residuals,lag.max=40),
+  autoplot(Acf(Model_111$residuals,lag.max=40, plot = FALSE)),
+  autoplot(Pacf(Model_111$residuals,lag.max=40)), nrow=1
 )
 
 #Now let's try ARIMA(0,1,1)
+#If the AIC value is lower, the better 
 
 
 
