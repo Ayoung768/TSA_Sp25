@@ -1,7 +1,7 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 7 - Due date 03/06/25"
-author: "Student Name"
+author: "Ayoung Kim"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -20,9 +20,12 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 ## Set up
 
-```{r}
+```{r, Warning=FALSE}
 #Load/install required package here
-
+library(forecast)
+library(tseries)
+library(dplyr)
+library(ggplot2)
 ```
 
 ## Importing and processing the data set
@@ -35,6 +38,46 @@ Consider the data from the file "Net_generation_United_States_all_sectors_monthl
 Import the csv file and create a time series object for natural gas. Make you sure you specify the **start=** and **frequency=** arguments. Plot the time series over time, ACF and PACF.
 
 ```{r}
+library(openxlsx)
+library(readxl)
+
+#Importing the csv file 
+net <- read.csv(file="./Net_generation_United_States_all_sectors_monthly.csv",skip=4)
+
+#Checking the colnames 
+colnames(net)
+
+#Rename the column 
+net_generation_rename <- net %>% rename(
+  Natural_gas = `natural.gas.thousand.megawatthours`
+)
+
+#Selected only Month, Natural gas 
+net_generation <- select(net_generation_rename,Natural_gas) #Month
+
+#Reversed sequence of values from old to recent one
+net_generation_reversed <- net_generation %>%
+  mutate(
+    Natural_gas = rev(Natural_gas)
+  )
+
+#Checking the order of values and whether it matches with Year-Month
+head(net_generation_reversed)
+
+#Create a time series object 
+ts_net_generation<-ts(net_generation_reversed,start=c(2000,1),frequency=12)
+
+
+#Plot the time series (I checked my code with AI to get rid of the Month)
+autoplot(ts_net_generation)
+
+acf_net_generation <- Acf(ts_net_generation, lag.max = 60, plot = FALSE)
+autoplot(acf_net_generation)
+
+pacf_net_generation <- Pacf(ts_net_generation, lag.max = 60, plot = FALSE)
+autoplot(pacf_net_generation)
+
+
 
 ```
 
@@ -42,7 +85,26 @@ Import the csv file and create a time series object for natural gas. Make you su
 
 Using the $decompose()$ and the $seasadj()$ functions create a series without the seasonal component, i.e., a deseasonalized natural gas series. Plot the deseasonalized series over time and corresponding ACF and PACF. Compare with the plots obtained in Q1.
 
+>Answer: Compared to the plots in Q1, the plots of the deseasoned time series and the corresponding ACF/PACF show a reduced seasonal component. This is particularly evident in the 'deseasonalized plot with the original curve,' where the deseasoned curve is compared to the original. Additionally, in the ACF and PACF plots, the seasonal components have been removed.
+
 ```{r}
+#Deseasonalizing with decompose() function and its plot 
+decompose_net_generation<-decompose(ts_net_generation)
+plot(decompose_net_generation)
+
+#Deseasonalizing with seasadj() and its plot 
+deseasonal_net_generation<-seasadj(decompose_net_generation)
+
+#Deseasonalized plot with the original time series 
+autoplot(ts_net_generation,series="Original")+
+  autolayer(deseasonal_net_generation,series="Deseasoned")
+
+#Corresponding ACF and PACF 
+acf_deseasonal_net_generation <- Acf(deseasonal_net_generation,lag=60,plot = FALSE)
+plot(acf_deseasonal_net_generation, main="ACF of deseasonalized net generation of natural gas")
+
+pacf_deseasonal_net_generation <- Pacf(deseasonal_net_generation,lag=60,plot = FALSE)
+plot(pacf_deseasonal_net_generation, main="PACF of deseasonalized net generation of natural gas")
 
 ```
 
@@ -51,17 +113,38 @@ Using the $decompose()$ and the $seasadj()$ functions create a series without th
 ### Q3
 
 Run the ADF test and Mann Kendall test on the deseasonalized data from Q2. Report and explain the results.
+>Answer: According to the ADF test, the lag order is 6, the Dickey-Fuller value is -4.0271, and the p-value is 0.01. The null hypothesis would be rejected due to statistical significance and the series would be stationary. In the Mann-Kendall test result, the p-value is ≤ 2.22e-16, indicating a significant trend.
 
-```{r}
+```{r, Warning=FALSE}
+#Installing ManKendall 
+library(Kendall)
 
+#Change the format of deseasonsal_net_generation to numeric 
+numeric_deseasonal_net_generation <-as.numeric(deseasonal_net_generation)
+
+#ADF test 
+adf_test_1 <-adf.test(numeric_deseasonal_net_generation)
+print(adf_test_1)
+
+#Man Kendall Test 
+Mann_Kendall_1 <-MannKendall(numeric_deseasonal_net_generation)
+summary(Mann_Kendall_1)
 ```
-
 ### Q4
-
 Using the plots from Q2 and test results from Q3 identify the ARIMA model parameters $p,d$ and $q$. Note that in this case because you removed the seasonal component prior to identifying the model you don't need to worry about seasonal component. Clearly state your criteria and any additional function in R you might use. DO NOT use the $auto.arima()$ function. You will be evaluated on ability to understand the ACF/PACF plots and interpret the test results.
 
-```{r}
+>Answer: 
+ARIMA model parameter (p,d,q)
+p=1, because the pacf shows the cut off after lag 1, likely to be AR(1) model
+d=0, because it was deseasonalized already. 
+q=0, because ACF plot shows the slow decay, which means it is AR model. 
+Therefore, the ARIMA model would be ARIMA (1,0,0). According to the summary of arima_net_generation, the coefficient of AR(1) would be 0.9825 and it means that the previous value would have significant impacts on forecasting the next value. 
 
+
+```{r}
+#ARIMA model with parameters 
+arima_net_generation <- arima(deseasonal_net_generation, order = c(1, 0, 0), include.mean = TRUE)
+summary(arima_net_generation)
 ```
 
 ### Q5
@@ -69,12 +152,20 @@ Using the plots from Q2 and test results from Q3 identify the ARIMA model parame
 Use `Arima()` from package "forecast" to fit an ARIMA model to your series considering the order estimated in Q4. You should allow constants in the model, i.e., `include.mean = TRUE` or `include.drift=TRUE`. **Print the coefficients** in your report. Hint: use the `cat()` or `print()` function to print.
 
 ```{r}
+arima_net_generation1 <- Arima(deseasonal_net_generation, order = c(1, 0, 0),include.mean = TRUE)
+print(arima_net_generation1)
+
+#Plot the residuals of the ARIMA along with residuals ACF and PACF
+checkresiduals(arima_net_generation1)
 
 ```
 
 ### Q6
 
 Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PACF on the same window. You may use the $checkresiduals()$ function to automatically generate the three plots. Do the residual series look like a white noise series? Why?
+
+>Answer: The residueal series looks like a white noise series with random noises around 0. 
+(Check the answer later)
 
 ## Modeling the original series (with seasonality)
 
@@ -83,6 +174,20 @@ Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PAC
 Repeat Q3-Q6 for the original series (the complete series that has the seasonal component). Note that when you model the seasonal series, you need to specify the seasonal part of the ARIMA model as well, i.e., $P$, $D$ and $Q$.
 
 ```{r}
+#Installing ManKendall 
+library(Kendall)
+
+#Change the format of deseasonsal_net_generation to numeric 
+numeric_deseasonal_net_generation <-as.numeric(deseasonal_net_generation)
+
+#ADF test 
+adf_test_1 <-adf.test(numeric_deseasonal_net_generation)
+print(adf_test_1)
+
+#Man Kendall Test 
+Mann_Kendall_1 <-MannKendall(numeric_deseasonal_net_generation)
+summary(Mann_Kendall_1)
+
 
 ```
 
